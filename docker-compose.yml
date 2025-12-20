@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  airflow:
+    image: apache/airflow:2.8.1
+    container_name: airflow
+    env_file:
+      - .env
+    environment:
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/requirements.txt:/requirements.txt
+      - ./spark:/opt/spark_jobs
+      - ./data:/opt/data
+    ports:
+      - "8080:8080"
+    command: >
+      bash -c "
+      pip install -r /requirements.txt &&
+      airflow db init &&
+      airflow users create
+        --username admin
+        --password admin
+        --firstname Admin
+        --lastname User
+        --role Admin
+        --email admin@example.com &&
+      airflow webserver & airflow scheduler
+      "
