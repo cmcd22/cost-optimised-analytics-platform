@@ -1,23 +1,18 @@
 services:
   airflow:
-    image: apache/airflow:2.8.1
+    build: .
     container_name: airflow
-    env_file:
-      - .env
-    environment:
-      - AIRFLOW__CORE__LOAD_EXAMPLES=False
-      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
-      - AIRFLOW__WEBSERVER__WEB_SERVER_PORT=8080
-    volumes:
-      - ./airflow/dags:/opt/airflow/dags
-      - ./airflow/requirements.txt:/requirements.txt
-      - ./spark:/opt/spark_jobs
-      - ./data:/opt/data
+    command: airflow standalone
     ports:
       - "8080:8080"
-    command:
-      - bash
-      - -c
-      - |
-        pip install -r /requirements.txt
-        airflow standalone
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./spark:/opt/spark_jobs
+      - ./data:/opt/data
+  spark:
+    image: apache/spark:3.5.0
+    container_name: spark
+    volumes:
+      - ./spark:/opt/spark_jobs
+      - ./data:/opt/data
+    command: tail -f /dev/null

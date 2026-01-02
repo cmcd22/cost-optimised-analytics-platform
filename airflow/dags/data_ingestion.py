@@ -50,8 +50,9 @@ with DAG(
         task_id="spark_transform_to_parquet",
         bash_command=(
             "spark-submit "
+            "--master local[*] "
             "/opt/spark_jobs/transform_to_parquet.py"
-        )
+        ),
     )
 
     download_task >> spark_transform
