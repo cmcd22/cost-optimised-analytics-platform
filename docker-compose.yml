@@ -9,6 +9,8 @@ services:
       - ./airflow/dags:/opt/airflow/dags
       - ./spark:/opt/spark_jobs
       - ./data:/opt/data
+    env_file:
+      - .env
   spark:
     image: apache/spark:3.5.0
     container_name: spark
