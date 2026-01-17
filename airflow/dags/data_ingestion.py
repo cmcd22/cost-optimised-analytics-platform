@@ -5,6 +5,7 @@ from datetime import datetime
 import os
 import requests
 
+# Constants
 DATA_DIR = "/opt/data/raw"
 BASE_URL = "https://d37ci6vzurychx.cloudfront.net/trip-data"
 
@@ -28,6 +29,7 @@ def download_taxi_data(year: int, month: int):
 
     print(f"Downloaded {file_name}")
 
+# Default arguments for the DAG
 default_args = {
     "start_date": datetime(2022, 1, 1),
     "catchup": False

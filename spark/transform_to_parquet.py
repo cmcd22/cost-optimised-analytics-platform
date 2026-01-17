@@ -4,6 +4,7 @@ from pyspark.sql.functions import (
 )
 from pyspark.sql.types import DoubleType, IntegerType
 
+# Initialize Spark session
 spark = (
     SparkSession.builder
         .appName("NYC Taxi Transform")
@@ -13,23 +14,27 @@ spark = (
         .getOrCreate()
 )
 
+# Read raw data
 input_path = "/opt/data/raw/yellow_tripdata_2022-01.parquet"
 output_path = "/opt/data/gold/fact_trips"
 
 df = spark.read.parquet(input_path)
 
+# Calculate trip duration in minutes
 df = df.withColumn(
     "trip_duration_minutes",
     (unix_timestamp("tpep_dropoff_datetime") -
      unix_timestamp("tpep_pickup_datetime")) / 60
 )
 
+# Extract year, month, hour from pickup datetime
 df = (
     df.withColumn("pickup_year", year("tpep_pickup_datetime"))
       .withColumn("pickup_month", month("tpep_pickup_datetime"))
       .withColumn("pickup_hour", hour("tpep_pickup_datetime"))
 )
 
+# Cast numeric columns to DoubleType and handle invalid data
 numeric_cols = [
     "trip_distance",
     "fare_amount",
@@ -44,6 +49,7 @@ numeric_cols = [
     "trip_duration_minutes"
 ]
 
+# Clean numeric columns
 df_clean = df
 for c in numeric_cols:
     df_clean = df_clean.withColumn(
@@ -52,6 +58,7 @@ for c in numeric_cols:
         .otherwise(None)
     )
 
+# Cast integer columns to IntegerType and handle invalid data
 int_cols = [
     "passenger_count",
     "VendorID",
@@ -62,6 +69,7 @@ int_cols = [
     "pickup_hour"
 ]
 
+# Clean integer columns
 df_clean_int = df_clean
 for c in int_cols:
     df_clean_int = df_clean_int.withColumn(
@@ -70,6 +78,7 @@ for c in int_cols:
         .otherwise(None)
     )
 
+# Select columns for CSV output
 csv_cols = [
     "VendorID",
     "tpep_pickup_datetime",
@@ -96,6 +105,7 @@ csv_cols = [
 
 df_csv = df_clean_int.select(*csv_cols)
 
+# Write transformed data to Parquet, partitioned by year and month
 output_path_local = "/opt/data/gold/fact_trips"
 output_path_s3 = "s3a://cmcd-cost-optimised-ap/nyc-taxi/gold/fact_trips"
 
